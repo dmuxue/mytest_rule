@@ -1,0 +1,51 @@
+name: Auto Update Clash Rules
+
+# 触发工作流的条件
+on:
+  # 1. 每天北京时间早上8点运行一次 (cron 时间是 UTC, 0 0 * * * 对应 UTC 0点)
+  schedule:
+    - cron: '0 0 * * *'
+  # 2. 允许在 GitHub Actions 页面手动触发
+  workflow_dispatch:
+  # 3. 当有代码推送到 main 分支时也触发（方便调试脚本）
+  push:
+    branches:
+      - main
+
+jobs:
+  build-rules:
+    # 使用最新的 Ubuntu 运行环境
+    runs-on: ubuntu-latest
+
+    steps:
+      # 步骤1: 检出你的仓库代码，以便工作流可以访问它
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # 步骤2: 设置 Python 3.x 环境
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      # 步骤3: 安装 Python 脚本所需的依赖库
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
+
+      # 步骤4: 运行 Python 脚本来生成规则文件
+      - name: Run Rule Processing Script
+        run: python process_rules.py
+        
+      # 步骤5: 检查文件变动，并自动提交到仓库
+      - name: Commit and Push Changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: Auto update clash rules"
+          # 只提交 rules 文件夹下 .list 文件的变更
+          file_pattern: rules/*.list
+          # 自定义提交者信息
+          commit_user_name: GitHub Actions Bot
+          commit_user_email: actions@github.com
+          commit_author: GitHub Actions Bot <actions@github.com>

@@ -1,0 +1,1 @@
+https://gh-proxy.com/raw.githubusercontent.com/qichiyuhub/rule/refs/heads/main/proxy.list
